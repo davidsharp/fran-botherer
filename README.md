@@ -1,16 +1,37 @@
-# fran-botherer
-a bot for bothering bad-bloggers
+Glitch Twitter bot template 
+===================================
 
-# what?
-This repo serves to house my Twitter bot away from Glitch (and to see exactly how import/export works)
+![Tweetin'](https://cdn.gomix.com/4032b241-bff8-473e-aa6b-eb0c92a4bd06%2Ftweeting.gif)
 
-The bot itself I started a while back (remixed from an existing Glitch boilerplate) and rarely touch now, but it checks a Blogspot RSS feed specified in the `.env` and picks from a short list of messages to tweet if it doesn't find a blog this week (the post needs to be from within 5 days of the 'blogging day' and the check happens at midday GMT, if you want a different time, remix it).
+This is a template for making fun Twitter bots with [Glitch](https://glitch.com/) and the [Twit](https://github.com/ttezel/twit) node.js library.
 
-The `.env` should also include your Twitter App credentials and the Twitter account and birthday of that Twitter user (did I mention it wishes them a happy birthday?)
+## A quick tutorial
 
-You'll also need something like an Uptime Robot account to probe the endpoint. When the correct conditions are met, it sends a tweet. I do it hourly, any more and it'll send a load of tweets at once (it has done that before). There's also some helper paths to test stuff out so you know your Twitter bot config is working or whatever.
+1. First, create a new Twitter account and a new Twitter app. ([This tutorial](https://botwiki.org/tutorials/how-to-create-a-twitter-app/) shows how.)
+2. Update the `.env` file with your Twitter API key/secrets. (The tutorial above explains how to get these.)
+3. Also update the `BOT_ENDPOINT`; it could be something like `tweet`.
+4. Update `server.js` with some cool Twitter bot code. (Make sure your bot follows [Twitter's rules](https://support.twitter.com/articles/18311-the-twitter-rules) and is overall [not a jerk](https://botwiki.org/articles/bot-ethics/).)
+5. Set up a free service ([Uptime Robot](https://uptimerobot.com/), or [a similar one](https://www.google.com/search?q=free+web+cron)) to wake up your bot [every 25+ minutes](https://support.glitch.com/t/a-simple-twitter-bot-template/747/16) and tweet. Use `https://YOUR_PROJECT_NAME.glitch.me/BOT_ENDPOINT` as a URL to which to send the HTTP request.
 
-Remix it here: https://glitch.com/edit/#!/remix/fran-botherer
+The included example simply tweets out "hello world 👋". Check out [the Twit module documentation](https://github.com/ttezel/twit) for more examples of what your bot can do.
 
-# who's fran?
-Someone who doesn't manage to blog every week (and doesn't mind being tweeted about it)
+You can find more [tutorials](https://botwiki.org/tutorials/twitterbots/#tutorials-nodejs) and [open source Twitter bots](https://botwiki.org/tag/twitter+bot+opensource+nodejs/) on [Botwiki](https://botwiki.org).
+
+And be sure to join the [Botmakers](https://botmakers.org/) online hangout and [submit your bot to Botwiki](https://botwiki.org/submit-your-bot) :-)
+
+
+## Note on bots that auto-reply to DMs/@ mentions
+
+Apps hosted on Glitch are automatically put to sleep after 5 minutes of inactivity (that is, if nobody opens your app in a browser window or it doesn't receive any data).
+
+Twitter's API doesn't send requests to your app, instead your app has to poll Twitter for data. 
+
+See [this Glitch starter project](https://glitch.com/edit/#!/twitterbot-autorespond) where i work around this limitation and make a Twitter bot that responds to DMs and @ mentions (with a [25 minute delay](https://support.glitch.com/t/a-simple-twitter-bot-template/747/16)).
+
+## More starter projects
+
+For more bot starter projects on Glitch, check out the official [Botwiki on Glitch](https://glitch.com/botwiki) page.
+
+**Powered by [Glitch](https://glitch.com)**
+
+\ ゜o゜)ノ
