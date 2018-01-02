@@ -18,22 +18,24 @@ var path = require('path'),
     request = require('request'),
     moment = require('moment-timezone'),
     phrases = require('./phrases.json');
-moment.tz.setDefault('Europe/London');
+moment.tz.setDefault(process.env.TIMEZONE||'Europe/London');
 app.use(express.static('public'));
+
+const signed = `\n(❤️🤖)${process.env.HASHTAG?'\n#'+process.env.HASHTAG:''}`
 
 /* You can use uptimerobot.com or a similar site to hit your /BOT_ENDPOINT to wake up your app and make your Twitter bot tweet. */
 
 app.all("/" + process.env.BOT_ENDPOINT, function (request, response) {//console.log(moment(),afterMidday(moment()))
   if(/str/.test(typeof request.query.says)){ //check if it /exists/, because we might want it empty
     console.log(request.query)
-    sendTweet({status:`bot says ${request.query.says||'hello'} (❤️🤖)`}, response)
+    sendTweet({status:`${/str/.test(typeof request.query.at)?'@'+request.query.at+', ':''}bot says:\n${request.query.says||'hello'}${signed}`}, response)
     return;
   }
   else if(/str/.test(typeof request.query.draws)&&request.query.draws.length){ //check if it /exists/, because we might want it empty
     console.log(request.query)
     drawTweet(
       request.query.draws,
-      {status:`bot would like to share this image with you (❤️🤖)`},
+      {status:`bot would like to share this image with you${signed}`},
       response
     )
     
@@ -44,7 +46,7 @@ app.all("/" + process.env.BOT_ENDPOINT, function (request, response) {//console.
     return;
   }
   else if(process.env.BIRTHDAY && moment().format('DD/MM')==process.env.BIRTHDAY && moment().isSameOrAfter(moment('7:00','H:mm'),'minute') && moment().isBefore(moment('8:00','H:mm'),'minute')){
-    sendTweet({ status: `@${process.env.ACCOUNT_TO_BOTHER}, Happy Birthday! 🎂🎉 (❤️🤖)` }, response)
+    sendTweet({ status: `@${process.env.ACCOUNT_TO_BOTHER}, Happy Birthday! 🎂🎉${signed}` }, response)
     return;
   }
   else if(checkDay(process.env.BLOG_DAY) && afterMidday() && moment().isBefore(moment('13:00','H:mm'),'minute')){
@@ -54,7 +56,7 @@ app.all("/" + process.env.BOT_ENDPOINT, function (request, response) {//console.
     requestRSS(process.env.RSS_TO_CHECK/*,response*/).then(function(item){
       compareDates(item./*meta.*/pubdate)?
         response.send('#ispyblog 🎉') :
-        sendTweet({status:`@${process.env.ACCOUNT_TO_BOTHER} ${phrases[Math.floor(Math.random()*phrases.length)]} (❤️🤖)`}, response)
+        sendTweet({status:`@${process.env.ACCOUNT_TO_BOTHER} ${phrases[Math.floor(Math.random()*phrases.length)]}${signed}`}, response)
       //response.send([compareDates(item.meta.pubdate)?'Last post was today':'Last post was not today',item.meta,phrases])
     },()=>response.sendStatus(500));
     return;
