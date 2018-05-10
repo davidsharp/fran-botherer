@@ -17,7 +17,8 @@ var path = require('path'),
     FeedParser = require('feedparser'),
     request = require('request'),
     moment = require('moment-timezone'),
-    phrases = require('./phrases.json');
+    phrases = require('./phrases.json'),
+    praises = require('./praises.json');
 moment.tz.setDefault(process.env.TIMEZONE||'Europe/London');
 app.use(express.static('public'));
 
@@ -53,9 +54,13 @@ app.all("/" + process.env.BOT_ENDPOINT, function (request, response) {//console.
     //checking it's after midday London time, that'll be our grace period
     //got an hour window for checking every hour, but maybe I should be
     //using a 2 hour window, so we can reasonably check every hour and a half
-    requestRSS(process.env.RSS_TO_CHECK/*,response*/).then(function(item){
-      compareDates(item./*meta.*/pubdate)?
-        response.send('#ispyblog 🎉') :
+    requestRSS(process.env.RSS_TO_CHECK,2).then(function(items){
+      compareDates(items[0]./*meta.*/pubdate)?
+        (//so we know that there's been a post this week, now check if the 2nd most recent was this week too (be more generous)
+          items[1] && compareDates(items[1]./*meta.*/pubdate,6)?
+            sendTweet({status:`@${process.env.ACCOUNT_TO_BOTHER} ${praises[Math.floor(Math.random()*praises.length)]}${signed}`}, response):
+            response.send('#ispyblog 🎉')
+        ) :
         sendTweet({status:`@${process.env.ACCOUNT_TO_BOTHER} ${phrases[Math.floor(Math.random()*phrases.length)]}${signed}`}, response)
       //response.send([compareDates(item.meta.pubdate)?'Last post was today':'Last post was not today',item.meta,phrases])
     },()=>response.sendStatus(500));
@@ -137,7 +142,7 @@ function afterMidday(mom){
   return (mom||moment()).isAfter(moment('12:00','H:mm'),'minute')
 }
 
-function requestRSS(url,response){return new Promise(function(resolve,reject){
+function requestRSS(url,response,postsRequired=1){return new Promise(function(resolve,reject){
   var req = request(url)//request(process.env.RSS_TO_CHECK)
   var feedparser = new FeedParser({});
 
@@ -160,18 +165,20 @@ function requestRSS(url,response){return new Promise(function(resolve,reject){
     var stream = this; // `this` is `feedparser`, which is a stream
     var meta = this.meta; // **NOTE** the "meta" is always available in the context of the feedparser instance
     var item;
-    //var allItems=[];
+    var allItems=[];
     //return stream.read();
     while (item = stream.read()) {
     //while (!item) {
-      console.log(Object.keys(item));
-      //response.send([compareDates(item.meta.pubdate)?'Last post was today':'Last post was not today',item.meta,phrases]);
-      //return item;
-      // as far as I can tell, Blogspot/Blogger just sends the most recent post, which is realistically all we need
+      //console.log(Object.keys(item));
+      //console.log(item.title)
+      // each item is a post, the first being the most recent post, which is realistically all we need
+      // so by resolving we break out of the loop and return just the most recent for date comparison
       // meta gives the most recent update as the time stamp, which again is fine for our purposes
-      //allItems.push(item);
-      resolve(item);
+      if(postsRequired==1)resolve(item);
+      allItems.push(item);
+      if(allItems.length>=postsRequired)resolve(allItems)
     }
+    //resolve(allItems[0]);
     //console.log(item.meta)
     //return item;
     //response.send(allItems);
