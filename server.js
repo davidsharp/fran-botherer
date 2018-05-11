@@ -50,11 +50,12 @@ app.all("/" + process.env.BOT_ENDPOINT, function (request, response) {//console.
     sendTweet({ status: `@${process.env.ACCOUNT_TO_BOTHER}, Happy Birthday! 🎂🎉${signed}` }, response)
     return;
   }
-  else if(checkDay(process.env.BLOG_DAY) && afterMidday() && moment().isBefore(moment('13:00','H:mm'),'minute')){
+  else if(request.query.force || (checkDay(process.env.BLOG_DAY) && afterMidday() && moment().isBefore(moment('13:00','H:mm'),'minute'))){
     //checking it's after midday London time, that'll be our grace period
     //got an hour window for checking every hour, but maybe I should be
     //using a 2 hour window, so we can reasonably check every hour and a half
     requestRSS(process.env.RSS_TO_CHECK,2).then(function(items){
+      console.log(typeof items, Array.isArray(items))
       compareDates(items[0]./*meta.*/pubdate)?
         (//so we know that there's been a post this week, now check if the 2nd most recent was this week too (be more generous)
           items[1] && compareDates(items[1]./*meta.*/pubdate,6)?
@@ -142,7 +143,7 @@ function afterMidday(mom){
   return (mom||moment()).isAfter(moment('12:00','H:mm'),'minute')
 }
 
-function requestRSS(url,response,postsRequired=1){return new Promise(function(resolve,reject){
+function requestRSS(url,/*response,*/postsRequired=1){return new Promise(function(resolve,reject){
   var req = request(url)//request(process.env.RSS_TO_CHECK)
   var feedparser = new FeedParser({});
 
@@ -160,12 +161,12 @@ function requestRSS(url,response,postsRequired=1){return new Promise(function(re
     }
   });
   
+  var allItems=[];
   feedparser.on('readable', function () {
     // This is where the action is!
     var stream = this; // `this` is `feedparser`, which is a stream
     var meta = this.meta; // **NOTE** the "meta" is always available in the context of the feedparser instance
     var item;
-    var allItems=[];
     //return stream.read();
     while (item = stream.read()) {
     //while (!item) {
@@ -176,6 +177,7 @@ function requestRSS(url,response,postsRequired=1){return new Promise(function(re
       // meta gives the most recent update as the time stamp, which again is fine for our purposes
       if(postsRequired==1)resolve(item);
       allItems.push(item);
+      console.log(allItems.map(c=>c.title), allItems.length, postsRequired, allItems.length>=postsRequired)
       if(allItems.length>=postsRequired)resolve(allItems)
     }
     //resolve(allItems[0]);
