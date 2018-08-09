@@ -111,7 +111,7 @@ function drawTweet(imgURL,tweet,response,altText = "bot shared image"){ //TODO: 
 }
 
 app.all("/" + 'feed', function (_req, response) {
-  requestRSS(process.env.RSS_TO_CHECK,response).then(function(item){
+  requestRSS(process.env.RSS_TO_CHECK/*,response*/).then(function(item){
     response.send([compareDates(item.meta.pubdate)?'Last post was recent':'Last post was not recent',item/*.meta*/,phrases])
   });
 });
@@ -177,7 +177,6 @@ function requestRSS(url,/*response,*/postsRequired=1){return new Promise(functio
       // meta gives the most recent update as the time stamp, which again is fine for our purposes
       if(postsRequired==1)resolve(item);
       allItems.push(item);
-      console.log(allItems.map(c=>c.title), allItems.length, postsRequired, allItems.length>=postsRequired)
       if(allItems.length>=postsRequired)resolve(allItems)
     }
     //resolve(allItems[0]);
