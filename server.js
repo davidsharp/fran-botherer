@@ -111,8 +111,8 @@ function drawTweet(imgURL,tweet,response,altText = "bot shared image"){ //TODO: 
 }
 
 app.all("/" + 'feed', function (_req, response) {
-  requestRSS(process.env.RSS_TO_CHECK/*,response*/).then(function(item){
-    response.send([compareDates(item.meta.pubdate)?'Last post was recent':'Last post was not recent',item/*.meta*/,phrases])
+  requestRSS(process.env.RSS_TO_CHECK/*,response*/).then(function(item){console.log(item)
+    response.send([item.meta.pubDate,compareDates(item.meta.pubDate)?'Last post was recent':'Last post was not recent',item/*.meta*/,phrases])
   });
 });
 
@@ -144,7 +144,9 @@ function afterMidday(mom){
 }
 
 function requestRSS(url,/*response,*/postsRequired=1){return new Promise(function(resolve,reject){
-  var req = request(url)//request(process.env.RSS_TO_CHECK)
+  var req = request({url,headers: {
+    'User-Agent': 'request'
+  }})
   var feedparser = new FeedParser({});
 
   req.on('error', error);
@@ -154,7 +156,7 @@ function requestRSS(url,/*response,*/postsRequired=1){return new Promise(functio
     var stream = this; // `this` is `req`, which is a stream
 
     if (res.statusCode !== 200) {
-      this.emit('error', new Error('Bad status code'));
+      this.emit('error', new Error(`Bad status code (${res.statusCode})`));
     }
     else {
       stream.pipe(feedparser);
